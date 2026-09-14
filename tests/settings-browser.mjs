@@ -1,0 +1,28 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+await fs.mkdir('output/settings',{recursive:true});
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.addInitScript(()=>{window.audioCalls=[];const original=AudioContext.prototype.createOscillator;AudioContext.prototype.createOscillator=function(){const osc=original.call(this),start=osc.start.bind(osc);osc.start=function(when){window.audioCalls.push({frequency:osc.frequency.value,when});return start(when);};return osc;};});
+await page.goto('http://localhost:5173');await page.waitForFunction(()=>!!window.render_game_to_text);
+assert.equal(await page.locator('#bpm').inputValue(),'75');assert.equal(await page.locator('#speed').inputValue(),'30');assert.equal(await page.locator('#speed').getAttribute('max'),'100');
+const range=async(id,value)=>page.locator('#'+id).evaluate((el,value)=>{el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));},String(value));
+await range('speed',100);await range('slope',35);await range('wingAngle',50);await page.screenshot({path:'output/settings/steep.png',fullPage:true});
+await range('slope',16);await range('wingAngle',0);await page.screenshot({path:'output/settings/flat.png',fullPage:true});
+await range('wingAngle',33);await range('speed',30);await page.locator('[data-tab="judge"]').click();const input=await page.locator('#new-boundary').boundingBox(),plus=await page.locator('#add-boundary').boundingBox();assert.ok(plus.x-input.x-input.width<45);assert.ok(await page.locator('#boundary-hint').isVisible());await page.screenshot({path:'output/settings/judge.png'});
+await page.locator('[data-tab="keys"]').click();await page.locator('#sound').uncheck();assert.ok(await page.locator('#hitSound').isChecked());await page.screenshot({path:'output/settings/sound.png'});
+const start=async()=>{await page.locator('#start').click();await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).mode==='playing');};
+const jump=async t=>page.evaluate(t=>window.advanceTime(t-JSON.parse(window.render_game_to_text()).time),t);
+const clear=()=>page.evaluate(()=>{window.audioCalls=[];});const calls=()=>page.evaluate(()=>window.audioCalls);
+const back=async()=>{await page.keyboard.press('Escape');await page.locator('#back').click();};
+await start();await jump(2359);await clear();await page.keyboard.press('ShiftLeft');assert.equal((await calls()).length,0,'early press stays silent');
+await jump(2500);await page.keyboard.press('ShiftLeft');let played=await calls();assert.equal(played.length,3);assert.ok(Math.abs(played[0].frequency-130.8128)<.01,'C4 hit sounds C3');await page.screenshot({path:'output/settings/hit.png'});
+await clear();await jump(2841);assert.equal((await calls()).length,0,'miss stays silent');await back();
+await page.locator('#hitSound').uncheck();await start();await jump(2500);await clear();await page.keyboard.press('ShiftLeft');assert.equal((await calls()).length,0,'both disabled stay silent');await back();
+await page.locator('#sound').check();await start();await page.waitForTimeout(2600);played=await calls();assert.ok(played.some(n=>Math.abs(n.frequency-261.6256)<.01),'background C4 sounds independently');await jump(2900);await clear();await page.keyboard.press('d');assert.equal((await calls()).length,0,'disabled hit sound stays silent with background enabled');await back();
+await page.locator('[data-tab="chart"]').click();await page.setViewportSize({width:390,height:844});await range('slope',35);await range('wingAngle',50);await page.screenshot({path:'output/settings/mobile-setup.png',fullPage:true});await start();await jump(2200);await page.screenshot({path:'output/settings/mobile-steep.png'});
+for(const label of await page.locator('#lane-labels span').all()){const b=await label.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=390&&b.y>=0&&b.y+b.height<=844);}
+const blue=await page.evaluate(()=>{window.advanceTime(0);const c=document.querySelector('canvas'),g=c.getContext('webgl2'),a=new Uint8Array(c.width*c.height*4);g.readPixels(0,0,c.width,c.height,g.RGBA,g.UNSIGNED_BYTE,a);let count=0;for(let i=0;i<a.length;i+=4)if(a[i+2]>200&&a[i+2]>a[i+1]*1.2&&a[i+2]>a[i]*1.5)count++;return count;});assert.ok(blue>0,'blue note pixels visible');
+assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,bluePixels:blue,errors}));await browser.close();

@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {defaults,makeChart,parseUnit,judge,pitch} from '../core.js';
+test('symmetric inclusive boundaries',()=>{for(const sign of [-1,1]){assert.equal(judge(sign*35,defaults.windows),0);assert.equal(judge(sign*80,defaults.windows),1);assert.equal(judge(sign*140,defaults.windows),2);assert.equal(judge(sign*140.01,defaults.windows),-1);}});
+test('chords consume a single time step',()=>{assert.deepEqual(parseUnit('1(24)6'),[[0],[1,3],[5]]);assert.throws(()=>parseUnit('127'));const c=makeChart({'1':{up:'1(24)6',down:'321'}},{...defaults,queue:['1'],repeat:1});assert.equal(c.notes[1].time,c.notes[2].time);assert.equal(c.notes[3].time-c.notes[1].time,200);});
+test('ordering, repeats, tempo and independent scroll speed',()=>{const d={'1':{up:'12',down:'21'},'2':{up:'34',down:'43'}};const a=makeChart(d,{...defaults,queue:['2','1','2'],repeat:3});assert.equal(a.notes.length,36);assert.deepEqual(a.sections.slice(0,6).map(s=>s.shift),[0,1,2,2,1,0]);assert.deepEqual(a.sections.slice(0,6).map(s=>s.direction),['up','up','up','down','down','down']);const b=makeChart(d,{...defaults,queue:['2','1','2'],repeat:3,speed:100});assert.deepEqual(a,b);assert.equal(a.step,200);assert.equal(makeChart(d,{...defaults,queue:['1'],bpm:60,division:4}).step,1000);});
+test('diatonic and whole tone transposition',()=>{assert.equal(pitch(2,1),65);assert.equal(pitch(2,1,'whole'),66);assert.equal(pitch(0,7),72);});
