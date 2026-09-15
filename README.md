@@ -4,7 +4,7 @@ Six-lane Hanon rhythm practice, built with HTML, CSS, JavaScript, Three.js and W
 
 Middle-lane notes are blue. Track inclination (0–90 degrees) and outer-lane elevation (0–50 degrees) are independently adjustable. At 0 degrees, surfaces flatten to a horizontal edge-on view; at 90 degrees the camera is overhead, with horizontal framing compensation to keep six lanes readable. Defaults are 75 BPM, displayed speed 4.00, inclination 10 degrees and outer elevation 30 degrees. Each slider has its own Default button. Speed is displayed as internal world units/second divided by 10.5: 4.00 equals the measured 42 units/second. Slider and numeric input adjust by 0.01 over 0.38–9.52. Saved internal speeds are preserved until adjusted.
 
-Distance fog is disabled. Notes enter at the visible far boundary. Judgement-line position is adjustable from -4 (farther) to +4 (nearer), default 0; far-edge distance is 20–120 world units, default 58. Receptors, labels, hit effects and note positions use the same line coordinate. The opening count-in extends when necessary so the first note also enters from the far edge. Subsequent rhythm intervals remain unchanged.
+Distance fog is disabled. Notes enter at the visible far boundary. Judgement-line position is adjustable from -4 (nearer) to +4 (farther), default 0; far-edge distance is 20–120 world units, default 58. Moving the judgement line does not move the camera. Receptors, labels, hit effects and note positions use the same line coordinate. The opening count-in extends when necessary so the first note also enters from the far edge. Subsequent rhythm intervals remain unchanged.
 
 ## Run
 
@@ -27,7 +27,7 @@ Music is generated and scheduled independently of player input. It uses a short 
 
 Successful hits optionally play the matched note one octave lower (MIDI minus 12), including its repetition transposition. Early ignored presses, empty presses and automatic misses do not play this sound. Background music and hit sounds have separate persisted toggles, both enabled by default. `node tests/settings-browser.mjs` checks actual oscillator frequencies and independent mute behavior, plus slope controls and note colors.
 
-Background and hit audio also have independent 0–100% levels, multiplied by master volume. Their defaults are 100% with the existing 30% master level, preserving previous loudness. A zero level suppresses that voice entirely. The metronome follows master volume.
+Background and hit audio also have independent 0–100% levels, multiplied by master volume. Their defaults are 100% with the existing 30% master level; the 100% audio level now has twice its previous gain. Turning either sound off disables and greys its slider, displays 0%, and instantly mutes its audio bus. Turning it back on restores the saved level. The metronome follows master volume and retains its previous gain.
 
 ## Checks
 
@@ -38,5 +38,7 @@ Background and hit audio also have independent 0–100% levels, multiplied by ma
 `node tests/judgement-browser.mjs` checks editable miss labels in effects/results, default reset isolation, palettes for 2–6 total tiers, random color persistence and responsive layout. Earlier workflow suites explicitly configure their legacy 140 ms windows as custom-window regression coverage.
 
 `node tests/track-browser.mjs` checks exact spawn and hit-line coordinates, no fog, extreme distances and 0/90-degree views, independent audio envelope levels, zero-volume silence, persistence and desktop/mobile framing.
+
+`node tests/panel-browser.mjs` checks fixed-height settings, its scrolling body and pinned reset/start controls, mute slider states, saved volume restoration and camera-stable judgement-line movement on desktop/mobile.
 
 Hanon units are loaded from `hanon_units.json`, retaining the previously reviewed 18 exercises. Digits 1-6 identify lanes; parenthesized digits represent simultaneous notes. Source: [Mutopia Hanon Part I](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=2037).
