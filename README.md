@@ -2,9 +2,9 @@
 
 Six-lane Hanon rhythm practice, built with HTML, CSS, JavaScript, Three.js and Web Audio. The middle four lanes are flat and the two outside lanes rise outward. No sky input is implemented.
 
-Middle-lane notes are blue. Track inclination (0–90 degrees) and outer-lane elevation (0–50 degrees) are independently adjustable. At 0 degrees, surfaces flatten to a horizontal edge-on view; at 90 degrees the camera is overhead, with horizontal framing compensation to keep six lanes readable. Defaults are 75 BPM, displayed speed 4.00, inclination 10 degrees and outer elevation 30 degrees. Each slider has its own Default button. Speed is displayed as internal world units/second divided by 10.5: 4.00 equals the measured 42 units/second. Slider and numeric input adjust by 0.01 over 0.38–9.52. Saved internal speeds are preserved until adjusted.
+Middle-lane notes are blue. Track inclination (0–90 degrees) and outer-lane elevation (0–50 degrees) are independently adjustable. At 0 degrees, surfaces flatten to a horizontal edge-on view; at 90 degrees the camera is overhead, with horizontal framing compensation to keep six lanes readable. Defaults are 75 BPM, displayed speed 4.00, inclination 9 degrees and outer elevation 37 degrees. Each slider has its own Default button. Speed is displayed as internal world units/second divided by 21: 4.00 equals the measured 84 units/second. Slider and numeric input adjust by 0.01 over 0.19–10.00. Saved internal speeds are preserved until adjusted.
 
-Distance fog is disabled. Notes enter at the visible far boundary. Judgement-line position is adjustable from -4 (nearer) to +4 (farther), default 0; far-edge distance is 20–120 world units, default 58. Moving the judgement line does not move the camera. Receptors, labels, hit effects and note positions use the same line coordinate. The opening count-in extends when necessary so the first note also enters from the far edge. Subsequent rhythm intervals remain unchanged.
+Distance fog is disabled. Notes enter at the visible far boundary. Judgement-line position is adjustable from -4 (nearer) to +4 (farther), default -4; far-edge distance is 20–120 world units, default 70. Moving the judgement line does not move the camera. Receptors, labels, hit effects and note positions use the same line coordinate. The opening count-in extends when necessary so the first note also enters from the far edge. Subsequent rhythm intervals remain unchanged.
 
 ## Run
 
@@ -14,7 +14,7 @@ Distance fog is disabled. Notes enter at the visible far boundary. Judgement-lin
 
 - A note step lasts `60000 / BPM * 4 / subdivision` milliseconds.
 - Each selected exercise plays its ascending unit N times, then its descending unit N times, then moves to the next entry. Entries may repeat and can be reordered.
-- Scroll speed remains stored in world units per second; only the displayed value is divided by 10.5. Perspective produces apparent acceleration without changing note timing.
+- Scroll speed remains stored in world units per second; only the displayed value is divided by 21. Perspective produces apparent acceleration without changing note timing.
 - Signed error is `input time - input offset - note time`. With optional early protection disabled, presses earlier than the negative final boundary are ignored. Both hit-window boundaries are inclusive. Unhit notes past the positive final boundary automatically become MISS.
 - Enable Early Protection to add a draggable special point x outside the final boundary M. Errors `< -x` are ignored; `[-x, -M)` consumes the note as MISS; `[-M, +M]` uses named hit tiers. Unhit notes past `+M` automatically miss regardless of x. Early misses break combo and play no hit audio. Increasing M moves x outward if necessary. Disable the toggle to remove early-MISS behavior.
 - The final miss-tier name is editable and used for both early and late misses, timing hints, effects and results. Default judgement settings are EXACT+ through 25 ms, EXACT through 50 ms, NEAR through 100 ms, BREAK beyond 100 ms, with early protection at 120 ms. Inner endpoints remain inclusive in the better tier.

@@ -1,5 +1,5 @@
-export const SPEED_SCALE=10.5;
-export const defaults={queue:['1','2','3'],repeat:2,bpm:75,division:16,speed:42,slope:10,wingAngle:30,judgementZ:0,farDistance:58,musicVolume:1,hitVolume:1,earlyProtection:120,missName:'BREAK',extraColors:[],keys:['ShiftLeft','KeyA','KeyS','KeyD','KeyF','Space'],windows:[{end:25,name:'EXACT+'},{end:50,name:'EXACT'},{end:100,name:'NEAR'}],offset:0,sound:true,hitSound:true,metronome:false,volume:.3};
+export const SPEED_SCALE=21;
+export const defaults={queue:['1','2','3'],repeat:2,bpm:75,division:16,speed:84,slope:9,wingAngle:37,judgementZ:-4,farDistance:70,musicVolume:1,hitVolume:1,earlyProtection:120,missName:'BREAK',extraColors:[],keys:['ShiftLeft','KeyA','KeyS','KeyD','KeyF','Space'],windows:[{end:25,name:'EXACT+'},{end:50,name:'EXACT'},{end:100,name:'NEAR'}],offset:0,sound:true,hitSound:true,metronome:false,volume:.3};
 export const tierColors={brightPurple:'#edb0ff',purple:'#b178ff',teal:'#39daca',red:'#ff586e'};
 export function judgementColors(total,extras=[]){const {brightPurple,purple,teal,red}=tierColors;if(total===2)return [purple,red];if(total===3)return [purple,teal,red];return [brightPurple,purple,...extras.slice(0,Math.max(0,total-4)),teal,red];}
 export function parseUnit(unit){if(!/^(?:[1-6]|\([1-6]+\))+$/.test(unit))throw Error('无效谱面数字串');return unit.match(/\([1-6]+\)|[1-6]/g).map(token=>[...new Set(token.replace(/[()]/g,'').split('').map(n=>Number(n)-1))]);}

@@ -18,8 +18,8 @@ await page.locator('[data-tab="judge"]').click();await page.screenshot({path:'ou
 while((await state()).windows.length>2)await page.locator('#windows .window-row:not(.miss-row)').last().getByTitle('删除端点').click();assert.deepEqual((await state()).judgementColors,[tierColors.purple,tierColors.teal,tierColors.red]);
 await page.locator('#windows .window-row:not(.miss-row)').last().getByTitle('删除端点').click();assert.deepEqual((await state()).judgementColors,[tierColors.purple,tierColors.red]);await page.screenshot({path:'output/judgements/two-tiers.png'});
 await page.locator('#offset').fill('45');await page.locator('#offset').press('Tab');
-await page.locator('[data-tab="chart"]').click();await page.locator('#speed-number').fill('6.25');await page.locator('#speed-number').press('Tab');
-await page.locator('[data-tab="judge"]').click();await page.locator('#reset-judgements').click();let current=await state();assert.deepEqual(current.judgementColors,base);assert.equal(current.missName,'BREAK');assert.equal(current.earlyProtection,120);assert.equal(current.speed,6.25);assert.equal(await page.locator('#offset').inputValue(),'0');
+await page.locator('[data-tab="chart"]').click();await page.locator('#speed-number').fill('3.00');await page.locator('#speed-number').press('Tab');
+await page.locator('[data-tab="judge"]').click();await page.locator('#reset-judgements').click();let current=await state();assert.deepEqual(current.judgementColors,base);assert.equal(current.missName,'BREAK');assert.equal(current.earlyProtection,120);assert.equal(current.speed,3);assert.equal(await page.locator('#offset').inputValue(),'0');
 await page.locator('#miss-name').fill('FALL');await page.locator('#miss-name').press('Tab');await page.locator('[data-tab="keys"]').click();await page.locator('#sound').uncheck();
 await page.locator('#start').click();await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).mode==='playing');
 const jump=t=>page.evaluate(t=>window.advanceTime(t-JSON.parse(window.render_game_to_text()).time),t);
