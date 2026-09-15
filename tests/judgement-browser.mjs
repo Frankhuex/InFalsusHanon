@@ -1,0 +1,31 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {tierColors} from '../core.js';
+await fs.mkdir('output/judgements',{recursive:true});
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://localhost:5173');await page.waitForFunction(()=>!!window.render_game_to_text);
+const state=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
+const base=[tierColors.brightPurple,tierColors.purple,tierColors.teal,tierColors.red];
+assert.deepEqual((await state()).windows,[{end:25,name:'EXACT+'},{end:50,name:'EXACT'},{end:100,name:'NEAR'}]);assert.equal((await state()).earlyProtection,120);assert.deepEqual((await state()).judgementColors,base);
+await page.locator('[data-tab="judge"]').click();await page.screenshot({path:'output/judgements/default.png'});
+for(const value of [130,160]){await page.locator('#new-boundary').fill(String(value));await page.locator('#add-boundary').click();}
+const expanded=(await state()).judgementColors;assert.equal(expanded.length,6);assert.deepEqual(expanded.slice(0,2),base.slice(0,2));assert.deepEqual(expanded.slice(-2),base.slice(-2));assert.notEqual(expanded[2],expanded[3]);
+await page.locator('#miss-name').fill('FALL');await page.locator('#miss-name').press('Tab');assert.deepEqual((await state()).judgementColors,expanded);await page.reload();await page.waitForFunction(()=>!!window.render_game_to_text);assert.equal((await state()).missName,'FALL');assert.deepEqual((await state()).judgementColors,expanded);
+await page.locator('[data-tab="judge"]').click();await page.screenshot({path:'output/judgements/six-tiers.png'});
+while((await state()).windows.length>2)await page.locator('#windows .window-row:not(.miss-row)').last().getByTitle('删除端点').click();assert.deepEqual((await state()).judgementColors,[tierColors.purple,tierColors.teal,tierColors.red]);
+await page.locator('#windows .window-row:not(.miss-row)').last().getByTitle('删除端点').click();assert.deepEqual((await state()).judgementColors,[tierColors.purple,tierColors.red]);await page.screenshot({path:'output/judgements/two-tiers.png'});
+await page.locator('#offset').fill('45');await page.locator('#offset').press('Tab');
+await page.locator('[data-tab="chart"]').click();await page.locator('#speed-number').fill('6.25');await page.locator('#speed-number').press('Tab');
+await page.locator('[data-tab="judge"]').click();await page.locator('#reset-judgements').click();let current=await state();assert.deepEqual(current.judgementColors,base);assert.equal(current.missName,'BREAK');assert.equal(current.earlyProtection,120);assert.equal(current.speed,6.25);assert.equal(await page.locator('#offset').inputValue(),'0');
+await page.locator('#miss-name').fill('FALL');await page.locator('#miss-name').press('Tab');await page.locator('[data-tab="keys"]').click();await page.locator('#sound').uncheck();
+await page.locator('#start').click();await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).mode==='playing');
+const jump=t=>page.evaluate(t=>window.advanceTime(t-JSON.parse(window.render_game_to_text()).time),t);
+for(const [time,key]of [[2500,'ShiftLeft'],[2740,'s'],[2980,'d']]){await jump(time);await page.keyboard.press(key);}
+await jump(3201);assert.deepEqual((await state()).counts,[1,1,1,1]);assert.ok((await page.locator('#effects').innerText()).includes('FALL'));assert.equal(await page.locator('.hit-text').last().evaluate(e=>e.style.color),'rgb(255, 88, 110)');await page.screenshot({path:'output/judgements/hits.png'});
+await jump(100000);assert.equal((await state()).mode,'results');const missRow=page.locator('#results .result-row').filter({hasText:'FALL'});assert.equal(await missRow.count(),1);assert.equal(await missRow.evaluate(e=>e.style.color),'rgb(255, 88, 110)');await page.screenshot({path:'output/judgements/results.png'});
+await page.locator('#restart').click();await jump(2390);await page.keyboard.press('ShiftLeft');assert.equal((await state()).counts.at(-1),1);assert.ok((await page.locator('#effects').innerText()).includes('FALL'));assert.equal((await state()).audio.voices,0);
+await page.keyboard.press('Escape');await page.locator('#back').click();await page.locator('[data-tab="judge"]').click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:'output/judgements/mobile.png',fullPage:true});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,errors}));await browser.close();
